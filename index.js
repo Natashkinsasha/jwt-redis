@@ -103,6 +103,7 @@ module.exports = function (redisClient) {
     };
     
     this.destroy = function (token, secretOrPublicKey, options, callback) {
+        const self = this;
         if (typeof options === 'function') {
             callback = options;
             options = {};
@@ -125,7 +126,7 @@ module.exports = function (redisClient) {
             })
         } else {
             return new Promise(function (resolve, reject) {
-                this.verify(token, secretOrPublicKey, function (err, decoded) {
+                self.verify(token, secretOrPublicKey, function (err, decoded) {
                     if(err){
                         return reject(err);
                     }
@@ -133,7 +134,7 @@ module.exports = function (redisClient) {
                         if(err){
                             return reject(err);
                         }
-                        return resolve(null, decoded);
+                        return resolve(decoded);
                     })
                 })
             })

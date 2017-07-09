@@ -173,6 +173,7 @@ describe('Test', function () {
                 })
             });
 
+
             it('', function (done) {
                 const secret = shortid.generate();
                 jwtr.sign({}, secret, function (err, token) {
@@ -222,29 +223,19 @@ describe('Test', function () {
                     if (err) {
                         done(err);
                     }
-                    setTimeout(function () {
-                        jwtr.verify(token, secret, function (err, decode) {
-                            if (!err) {
-                                done(new Error('should be error'));
-                            }
-                            expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
-                            done();
-                        })
-                    }, expiresIn * 1000);
-                })
-            });
-        });
-
-        describe('#destroy', function () {
-            it('', function (done) {
-                const token = shortid.generate();
-                const secret = shortid.generate();
-                jwtr.destroy(token, secret, function (err) {
-                    if(!err){
-                        done(new Error('should be error'));
+                    else {
+                        setTimeout(function () {
+                            jwtr.verify(token, secret, function (err, decode) {
+                                if (!err) {
+                                    done(new Error('should be error'));
+                                }
+                                else {
+                                    expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                                    done();
+                                }
+                            })
+                        }, expiresIn * 1000);
                     }
-                    expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
-                    done();
                 })
             });
 
@@ -254,8 +245,52 @@ describe('Test', function () {
                     if (err) {
                         done(err);
                     }
+                    jwtr.verify(token, secret)
+                        .then(function (decode) {
+                            expect(decode).to.have.property('jti');
+                            expect(decode).to.have.property('iat');
+                            expect(decode.jti).to.be.a('string');
+                            expect(decode.iat).to.be.a('number');
+                            done();
+                        })
+                        .catch(done)
+                })
+            });
+
+            it('', function (done) {
+                const token = shortid.generate();
+                const secret = shortid.generate();
+                jwtr.verify(token, secret)
+                    .then(done)
+                    .catch(function (err) {
+                        expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                        done();
+                    })
+            });
+        });
+
+        describe('#destroy', function () {
+            it('', function (done) {
+                const token = shortid.generate();
+                const secret = shortid.generate();
+                jwtr.destroy(token, secret, function (err) {
+                    if (!err) {
+                        done(new Error('should be error'));
+                    }
+                    expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                    done();
+                })
+            });
+
+
+            it('', function (done) {
+                const secret = shortid.generate();
+                jwtr.sign({}, secret, function (err, token) {
+                    if (err) {
+                        done(err);
+                    }
                     jwtr.destroy(token, secret, function (err, decode) {
-                        if(err){
+                        if (err) {
                             done(err);
                         }
                         expect(decode).to.have.property('jti');
@@ -274,11 +309,11 @@ describe('Test', function () {
                         done(err);
                     }
                     jwtr.destroy(token, secret, function (err) {
-                        if(err){
+                        if (err) {
                             done(err);
                         }
                         jwtr.verify(token, secret, function (err) {
-                            if(!err){
+                            if (!err) {
                                 done(new Error('should be error'));
                             }
                             expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
@@ -288,6 +323,34 @@ describe('Test', function () {
                 })
             });
 
+            it('', function (done) {
+                const token = shortid.generate();
+                const secret = shortid.generate();
+                jwtr.destroy(token, secret)
+                    .then(done)
+                    .catch(function (err) {
+                        expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                        done();
+                    })
+            });
+
+            it('', function (done) {
+                const secret = shortid.generate();
+                jwtr.sign({}, secret, function (err, token) {
+                    if (err) {
+                        done(err);
+                    }
+                    jwtr.destroy(token, secret)
+                        .then(function (decode) {
+                            expect(decode).to.have.property('jti');
+                            expect(decode).to.have.property('iat');
+                            expect(decode.jti).to.be.a('string');
+                            expect(decode.iat).to.be.a('number');
+                            done();
+                        })
+                        .catch(done)
+                })
+            });
 
         });
     });
