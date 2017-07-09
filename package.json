@@ -1,13 +1,17 @@
 {
   "name": "jwt-redis",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Alex",
+  "author": "natashkinsasha",
   "license": "ISC",
+  "keywords": [
+    "jwt",
+    "redis"
+  ],
   "dependencies": {
     "jsonwebtoken": "^7.4.1",
     "lodash.once": "^4.1.1",
