@@ -72,6 +72,8 @@ jwtr.sign(payload, secret, options, function (err, token) {
 })
 ```
 
+Если и id нет, то jti сгенерируется рандомно библиотекой.
+
 # Разрушение токена
 
 
