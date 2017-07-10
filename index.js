@@ -3,9 +3,13 @@ const shortId = require('shortid');
 const once = require('lodash.once');
 
 
-module.exports = function (redisClient) {
+module.exports = function (redisClient, options) {
+
+    this.keyspace = options && options.keyspace || 'jwt_label:';
 
     this.__proto__ = jwt;
+
+    const self = this;
 
     this.sign = function (payload, secretOrPrivateKey, options, callback) {
         if (typeof options === 'function') {
@@ -36,7 +40,7 @@ module.exports = function (redisClient) {
 
     this.destroy = function (token, secretOrPublicKey, options, callback) {
         var jti;
-        if(typeof secretOrPublicKey === 'function' || !secretOrPublicKey){
+        if (typeof secretOrPublicKey === 'function' || !secretOrPublicKey) {
             callback = secretOrPublicKey;
             options = {};
             jti = token;
@@ -46,11 +50,11 @@ module.exports = function (redisClient) {
         } else {
             options = options || {};
         }
-        if (jti){
+        if (jti) {
             if (typeof callback === 'function') {
                 return destroyByJTI(jti, callback);
             }
-            return promisify(destroyByJTI)(token, jti);
+            return promisify(destroyByJTI)(jti);
         }
         if (typeof callback === 'function') {
             return destroy(token, secretOrPublicKey, options, callback);
@@ -84,7 +88,7 @@ module.exports = function (redisClient) {
             if (err) {
                 return callback(err);
             }
-            return redisClient.get(decode.jti, function (err, jsonDecode) {
+            return redisClient.get(self.keyspace + decode.jti, function (err, jsonDecode) {
                 if (err) {
                     return callback(err);
                 }
@@ -103,7 +107,7 @@ module.exports = function (redisClient) {
             if (err) {
                 return callback(err);
             }
-            return redisClient.del(decoded.jti, function (err, tmp) {
+            return redisClient.del(self.keyspace + decoded.jti, function (err, tmp) {
                 if (err) {
                     return callback(err);
                 }
@@ -114,7 +118,7 @@ module.exports = function (redisClient) {
 
     function destroyByJTI(jti, callback) {
         callback = callback && once(callback);
-        return redisClient.del(jti, function (err, tmp) {
+        return redisClient.del(self.keyspace + jti, function (err, tmp) {
             if (err) {
                 return callback(err);
             }
@@ -124,9 +128,9 @@ module.exports = function (redisClient) {
 
     function set(jti, decode, cb) {
         if (decode.exp) {
-            return redisClient.set(jti, JSON.stringify(decode), 'EX', Math.floor(decode.exp - Date.now() / 1000), cb);
+            return redisClient.set(self.keyspace + jti, JSON.stringify(decode), 'EX', Math.floor(decode.exp - Date.now() / 1000), cb);
         }
-        return redisClient.set(jti, JSON.stringify(decode), cb);
+        return redisClient.set(self.keyspace + jti, JSON.stringify(decode), cb);
     }
 
     function promisify(func) {
@@ -134,7 +138,7 @@ module.exports = function (redisClient) {
             const funcArguments = [].slice.call(arguments);
             return new Promise(function (resolve, reject) {
                 funcArguments[funcArguments.length] = function (err, answer) {
-                    if(err){
+                    if (err) {
                         return reject(err);
                     }
                     return resolve(answer);
