@@ -12,6 +12,10 @@
     "jwt",
     "redis"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Natashkinsasha/jwt-redis"
+  },
   "dependencies": {
     "jsonwebtoken": "^7.4.1",
     "lodash.once": "^4.1.1",
