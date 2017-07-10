@@ -18,6 +18,80 @@ describe('Test', function () {
 
     redisClients.forEach(function (redisClient) {
         const jwtr = new JWTR(redisClient);
+
+        it('', function (done) {
+            const jwtrT = JWTR(redisClient);
+            const secret = shortid.generate();
+            jwtrT.sign({}, secret, function (err, token) {
+                if (err) {
+                    done(err);
+                }
+                const decode = jwtr.decode(token);
+                expect(decode).to.have.property('jti');
+                expect(decode).to.have.property('iat');
+                expect(decode.jti).to.be.a('string');
+                expect(decode.iat).to.be.a('number');
+                done();
+
+            })
+        });
+
+        describe('#bluebird', function () {
+            const jwtrAsync = Promise.promisifyAll(jwtr);
+            it('signAsync', function (done) {
+                const secret = shortid.generate();
+                jwtrAsync
+                    .signAsync({}, secret)
+                    .then(function (token) {
+                        const decode = jwtr.decode(token);
+                        expect(decode).to.have.property('jti');
+                        expect(decode).to.have.property('iat');
+                        expect(decode.jti).to.be.a('string');
+                        expect(decode.iat).to.be.a('number');
+                        done();
+                    })
+                    .catch(done);
+            });
+
+            it('verifyAsync', function (done) {
+                const secret = shortid.generate();
+                jwtrAsync.sign({}, secret, function (err, token) {
+                    if (err) {
+                        done(err);
+                    }
+                    jwtr.verify(token, secret)
+                        .then(function (decode) {
+                            expect(decode).to.have.property('jti');
+                            expect(decode).to.have.property('iat');
+                            expect(decode.jti).to.be.a('string');
+                            expect(decode.iat).to.be.a('number');
+                            done();
+                        })
+                        .catch(done)
+                })
+            });
+
+
+            it('destroyAsync', function (done) {
+                const secret = shortid.generate();
+                jwtrAsync.sign({}, secret, function (err, token) {
+                    if (err) {
+                        done(err);
+                    }
+                    jwtr.destroy(token, secret)
+                        .then(function (decode) {
+                            expect(decode).to.have.property('jti');
+                            expect(decode).to.have.property('iat');
+                            expect(decode.jti).to.be.a('string');
+                            expect(decode.iat).to.be.a('number');
+                            done();
+                        })
+                        .catch(done)
+                })
+            });
+        });
+
+
         describe('#sign', function () {
             it.skip('', function (done) {
                 const jwtrT = new JWTR();
@@ -275,7 +349,7 @@ describe('Test', function () {
                 const secret = shortid.generate();
                 jwtr.destroy(token, secret, function (err) {
                     if (!err) {
-                        done(new Error('should be error'));
+                        return done(new Error('should be error'));
                     }
                     expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
                     done();
@@ -287,11 +361,11 @@ describe('Test', function () {
                 const secret = shortid.generate();
                 jwtr.sign({}, secret, function (err, token) {
                     if (err) {
-                        done(err);
+                        return done(err);
                     }
-                    jwtr.destroy(token, secret, function (err, decode) {
+                    return jwtr.destroy(token, secret, function (err, decode) {
                         if (err) {
-                            done(err);
+                            return done(err);
                         }
                         expect(decode).to.have.property('jti');
                         expect(decode).to.have.property('iat');
@@ -302,17 +376,19 @@ describe('Test', function () {
                 })
             });
 
+
+
             it('', function (done) {
                 const secret = shortid.generate();
                 jwtr.sign({}, secret, function (err, token) {
                     if (err) {
-                        done(err);
+                        return done(err);
                     }
-                    jwtr.destroy(token, secret, function (err) {
+                    return jwtr.destroy(token, secret, function (err) {
                         if (err) {
-                            done(err);
+                            return done(err);
                         }
-                        jwtr.verify(token, secret, function (err) {
+                        return jwtr.verify(token, secret, function (err) {
                             if (!err) {
                                 done(new Error('should be error'));
                             }
@@ -322,6 +398,7 @@ describe('Test', function () {
                     })
                 })
             });
+
 
             it('', function (done) {
                 const token = shortid.generate();
@@ -349,6 +426,28 @@ describe('Test', function () {
                             done();
                         })
                         .catch(done)
+                })
+            });
+
+            it('', function (done) {
+                const secret = shortid.generate();
+                jwtr.sign({}, secret, function (err, token) {
+                    if (err) {
+                        return done(err);
+                    }
+                    const decode = jwtr.decode(token);
+                    return jwtr.destroy(decode.jti, function (err) {
+                        if (err) {
+                            return done(err);
+                        }
+                        return jwtr.verify(token, secret, function (err) {
+                            if (!err) {
+                                return done(new Error('should be error'));
+                            }
+                            expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                            done();
+                        })
+                    })
                 })
             });
 
