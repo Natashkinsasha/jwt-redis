@@ -377,7 +377,6 @@ describe('Test', function () {
             });
 
 
-
             it('', function (done) {
                 const secret = shortid.generate();
                 jwtr.sign({}, secret, function (err, token) {
@@ -451,6 +450,51 @@ describe('Test', function () {
                 })
             });
 
+        });
+
+        describe('#destroyById', function () {
+            it('', function (done) {
+                const secret = shortid.generate();
+                const id = shortid.generate();
+                jwtr.sign({id: id}, secret, function (err, token) {
+                    if (err) {
+                        return done(err);
+                    }
+                    return jwtr.destroyById(id, function (err, number) {
+                        expect(number).to.be.equal(1);
+                        if (err) {
+                            return done(err);
+                        }
+                        return jwtr.verify(token, secret, function (err) {
+                            if (!err) {
+                                done(new Error('should be error'));
+                            }
+                            expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                            done();
+                        })
+                    })
+                })
+            });
+
+            it('', function (done) {
+                const secret = shortid.generate();
+                const id = shortid.generate();
+                Promise
+                    .all([
+                        jwtr.sign({id: id}, secret),
+                        jwtr.sign({id: id}, secret)
+                    ])
+                    .then(function () {
+                        return jwtr.destroyById(id, function (err, number) {
+                            expect(number).to.be.equal(2);
+                            if (err) {
+                                return done(err);
+                            }
+                            done();
+                        })
+                    })
+                    .catch(done);
+            });
         });
     });
 });

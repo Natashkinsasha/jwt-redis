@@ -76,12 +76,23 @@ jwtr.sign(payload, secret, options, function (err, token) {
 
 # Разрушение токена
 
+Разрушить токен можно по средствам самого токена.
 
 ```javascript
     jwtr.destroy(token, secret, options, function (err, decode) {
     })
+```
+Так же можно передать jti.
 
+```javascript
     jwtr.destroy(jti, options, function (err, decode) {
+    })
+```
+
+Ище можно сделать не валидными все токены созданные на основе одно id.
+
+```javascript
+    jwtr.destroyById(id, options, function (err, decode) {
     })
 ```
 

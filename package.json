@@ -1,6 +1,6 @@
 {
   "name": "jwt-redis",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,10 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/Natashkinsasha/jwt-redis"
+  },
+  "bugs":{
+    "url" : "https://github.com/Natashkinsasha/jwt-redis/issues",
+    "email" : "natashkinsasga@gmail.com"
   },
   "dependencies": {
     "jsonwebtoken": "^7.4.1",

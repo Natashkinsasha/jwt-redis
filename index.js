@@ -62,6 +62,19 @@ module.exports = function (redisClient, options) {
         return promisify(destroy)(token, secretOrPublicKey, options);
     };
 
+    this.destroyById = function (id, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = {};
+        } else {
+            options = options || {};
+        }
+        if (typeof callback === 'function') {
+            return destroyById(id, options, callback);
+        }
+        return promisify(destroyById)(id, options);
+    };
+
     function sign(payload, secretOrPrivateKey, options, callback) {
         const jti = payload.jti || shortId.generate() + ':' + (payload.id || payload.data && payload.data.id || '');
         payload.jti = jti;
@@ -124,6 +137,17 @@ module.exports = function (redisClient, options) {
             }
             return callback(null, jti);
         })
+    }
+
+    function destroyById(id, options, callback) {
+        callback = callback && once(callback);
+        return redisClient
+            .keys('*' + id, function (err, keys) {
+                if (err){
+                    return callback(err);
+                }
+                return redisClient.del(keys, callback)
+            })
     }
 
     function set(jti, decode, cb) {
