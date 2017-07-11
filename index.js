@@ -142,8 +142,8 @@ module.exports = function (redisClient, options) {
     function destroyById(id, options, callback) {
         callback = callback && once(callback);
         return redisClient
-            .keys('*' + id, function (err, keys) {
-                if (err){
+            .keys(this.keyspace + '*' + id, function (err, keys) {
+                if (err) {
                     return callback(err);
                 }
                 return redisClient.del(keys, callback)
