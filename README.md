@@ -165,7 +165,7 @@ var options = {
 }
 var jwtr = new JWTR(redis, options);
 ```
-If you select a strategy, the black list will be set by default with a 30-day lifetime, unless another time is specified during the creation.
+If you select a strategy blacklist, blacklist will be set by default with a 30-day expiration time for tokens, unless another time is specified during the creation.
 The default time can be specified in the options.
 
 ```javascript
