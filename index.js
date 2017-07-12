@@ -6,7 +6,12 @@ const once = require('lodash.once');
 module.exports = function (redisClient, options) {
 
     this.keyspace = options && options.keyspace || 'jwt_label:';
-
+    this.blacklist = (options && options.blacklist) || false;
+    const set = this.blacklist && setBlacklist || setWhitelist;
+    const destroy = this.blacklist && destroyBlacklist || destroyWhitelist;
+    const destroyById = this.blacklist && destroyByIdBlacklist || destroyByIdWhitelist;
+    const destroyByJTI = this.blacklist && destroyByJTIBlacklist || destroyByJTIWhitelist;
+    const verify = this.blacklist && verifyBlacklist || verifyWhitelist;
     this.__proto__ = jwt;
 
     const self = this;
@@ -76,7 +81,7 @@ module.exports = function (redisClient, options) {
     };
 
     function sign(payload, secretOrPrivateKey, options, callback) {
-        const jti = payload.jti || shortId.generate() + ':' + (payload.id || payload.data && payload.data.id || '');
+        const jti = payload.jti || (payload.id || payload.data && payload.data.id || 'true') + ':' + shortId.generate();
         payload.jti = jti;
 
         callback = callback && once(callback);
@@ -95,32 +100,66 @@ module.exports = function (redisClient, options) {
         });
     }
 
-    function verify(token, secretOrPublicKey, options, callback) {
+    function verifyWhitelist(token, secretOrPublicKey, options, callback) {
         callback = callback && once(callback);
         jwt.verify(token, secretOrPublicKey, options, function (err, decode) {
             if (err) {
                 return callback(err);
             }
-            return redisClient.get(self.keyspace + decode.jti, function (err, jsonDecode) {
+            return additionalVerification(decode, options.eql, function (err) {
                 if (err) {
                     return callback(err);
                 }
-                if (jsonDecode) {
-                    return callback(null, decode)
+                return redisClient.get(self.keyspace + decode.jti, function (err, jsonDecode) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    if (redisVerifyWhitelist(jsonDecode)) {
+                        return callback(null, decode)
+                    }
+                    return callback(new jwt.JsonWebTokenError('jwt destroy'))
+                })
+            })
+        })
+    }
+
+    function verifyBlacklist(token, secretOrPublicKey, options, callback) {
+        callback = callback && once(callback);
+        jwt.verify(token, secretOrPublicKey, options, function (err, decode) {
+            if (err) {
+                return callback(err);
+            }
+            return additionalVerification(decode, options.eql, function (err) {
+                if (err) {
+                    return callback(err);
                 }
-                return callback(new jwt.JsonWebTokenError('jwt destroy'))
+                return redisClient.get(self.keyspace + decode.jti, function (err, jsonDecode) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    if (redisVerifyBlacklist(jsonDecode)) {
+                        return redisClient.get(self.keyspace + decode.jti.match(/(.*):/)[0], function (err, jsonDecode) {
+                            if (redisVerifyBlacklist(jsonDecode, decode.iat)) {
+                                return callback(null, decode)
+                            }
+                            return callback(new jwt.JsonWebTokenError('jwt destroy'))
+                        })
+
+                    }
+                    return callback(new jwt.JsonWebTokenError('jwt destroy'))
+                })
             })
 
         })
     }
 
-    function destroy(token, secretOrPublicKey, options, callback) {
+    function destroyWhitelist(token, secretOrPublicKey, options, callback) {
         callback = callback && once(callback);
         verify(token, secretOrPublicKey, {}, function (err, decoded) {
             if (err) {
                 return callback(err);
             }
-            return redisClient.del(self.keyspace + decoded.jti, function (err, tmp) {
+            return redisClient.del(self.keyspace + decoded.jti, function (err) {
                 if (err) {
                     return callback(err);
                 }
@@ -129,7 +168,22 @@ module.exports = function (redisClient, options) {
         })
     }
 
-    function destroyByJTI(jti, callback) {
+    function destroyBlacklist(token, secretOrPublicKey, options, callback) {
+        callback = callback && once(callback);
+        verify(token, secretOrPublicKey, {}, function (err, decoded) {
+            if (err) {
+                return callback(err);
+            }
+            return redisClient.set(self.keyspace + decoded.jti, 'true', function (err, tmp) {
+                if (err) {
+                    return callback(err);
+                }
+                return callback(null, decoded);
+            })
+        })
+    }
+
+    function destroyByJTIWhitelist(jti, callback) {
         callback = callback && once(callback);
         return redisClient.del(self.keyspace + jti, function (err, tmp) {
             if (err) {
@@ -139,22 +193,56 @@ module.exports = function (redisClient, options) {
         })
     }
 
-    function destroyById(id, options, callback) {
+    function destroyByJTIBlacklist(jti, callback) {
+        callback = callback && once(callback);
+        return redisClient.set(self.keyspace + jti, 'true', function (err, tmp) {
+            if (err) {
+                return callback(err);
+            }
+            return callback(null, jti);
+        })
+    }
+
+    function destroyByIdWhitelist(id, options, callback) {
         callback = callback && once(callback);
         return redisClient
-            .keys(this.keyspace + '*' + id, function (err, keys) {
+            .keys(self.keyspace + id + '*', function (err, keys) {
                 if (err) {
                     return callback(err);
                 }
-                return redisClient.del(keys, callback)
+                if (keys.length) {
+                    return redisClient.del(keys, function (err) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        return callback(null, true);
+                    })
+                }
+                return callback(null, true);
             })
     }
 
-    function set(jti, decode, cb) {
+    function destroyByIdBlacklist(id, options, callback) {
+        callback = callback && once(callback);
+        return redisClient
+            .set(self.keyspace + id + ':', Math.floor(Date.now() / 1000), function (err, keys) {
+                if (err) {
+                    return callback(err);
+                }
+                return callback(null, true);
+            })
+    }
+
+
+    function setWhitelist(jti, decode, cb) {
         if (decode.exp) {
-            return redisClient.set(self.keyspace + jti, JSON.stringify(decode), 'EX', Math.floor(decode.exp - Date.now() / 1000), cb);
+            return redisClient.set(self.keyspace + jti, 'true', 'EX', Math.floor(decode.exp - Date.now() / 1000), cb);
         }
-        return redisClient.set(self.keyspace + jti, JSON.stringify(decode), cb);
+        return redisClient.set(self.keyspace + jti, 'true', cb);
+    }
+
+    function setBlacklist(jti, decode, cb) {
+        return cb(null, decode);
     }
 
     function promisify(func) {
@@ -170,6 +258,34 @@ module.exports = function (redisClient, options) {
                 return func.apply(this, [].slice.call(funcArguments));
             })
         }
+    }
+
+    function redisVerifyWhitelist(value) {
+        return value === 'true';
+    }
+
+    function redisVerifyBlacklist(value, iat) {
+        return ((iat && iat >= value) || (!iat && value !== 'true'));
+    }
+
+    function additionalVerification(payloade, rules, cb) {
+        if (rules) {
+            return Object.keys(rules).forEach(function (ruleKey) {
+                var match;
+                const targets = Array.isArray(payloade[ruleKey]) ? payloade[ruleKey] : [payloade[ruleKey]];
+                if (payloade[ruleKey]) {
+                    const rule = Array.isArray(rules[ruleKey]) ? rules[ruleKey] : [rules[ruleKey]];
+                    match = targets.some(function (target) {
+                        return rule.indexOf(target) !== -1;
+                    });
+                }
+                if (!match) {
+                    return cb(new JsonWebTokenError('jwt ruleKey invalid. expected: ' + targets.join(' or ')));
+                }
+                return cb();
+            })
+        }
+        return cb()
     }
 
     return this;
