@@ -151,10 +151,10 @@ Method for verifying a token
 ### jwtr.verify(token, secretOrPublicKey, [options, callback]) ###
 
 Method for breaking the token (if the token does not pass validation, then the error pops up)
-### jwtr.destroy(token, secretOrPublicKey, [options, callback]) ###
+### jwtr.destroy(token, [secretOrPublicKey, options, callback]) ###
 
 Method for destroying a token by jti
-### jwtr.destroy(jti, [options, callback]) ###
+### jwtr.destroyByJti(jti, [options, callback]) ###
 
 Method for destroying a token by id
 ### jwtr.destroyById(id, [options, callback]) ###
