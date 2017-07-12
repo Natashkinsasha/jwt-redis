@@ -6,6 +6,10 @@ The absence of a token label in redis makes the token not valid. To destroy the 
 This makes it possible to make a token not valid until it expires.
 Jwt-redis supports both [node_redis] (https://www.npmjs.com/package/redis) and [ioredis] (https://www.npmjs.com/package/ioredis) clients.
 
+# Support
+
+This library is quite fresh, and maybe has bugs. Write me an **email** to *natashkinsash@gmail.com* and I will fix the bug in a few working days.
+
 # Quick start
 
 ```javascript
@@ -132,19 +136,25 @@ Only at the end of each method should you add **Async**.
 
 # API
 
+Method for creating a token.
 ### jwtr.sign(payload, secretOrPrivateKey, [options, callback]) ###
 
+Method for verifying a token
 ### jwtr.verify(token, secretOrPublicKey, [options, callback]) ###
 
+Method for breaking the token (if the token does not pass validation, then the error pops up)
 ### jwtr.destroy(token, secretOrPublicKey, [options, callback]) ###
 
+Method for destroying a token by jti
 ### jwtr.destroy(jti, [options, callback]) ###
 
+Method for destroying a token by id
 ### jwtr.destroyById(id, [options, callback]) ###
 
+Method for decoding token
 ### jwt.decode(token [, options]) ###
 
-jwt-redis fully supports all method options that support the library[jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken).
+jwt-redis fully supports all method options that support the library [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken).
 Therefore, it is better to read their documentation in addition. But there are several options that are available only in jwt-redis.
 jwt-redis supports two strategies for storing labels in redis: the whitelist and the blacklist. By default, the whitelist strategy is selected.
 In the initialization options, you can specify that you want to use a different strategy.
