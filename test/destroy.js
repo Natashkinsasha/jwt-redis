@@ -103,27 +103,6 @@ describe('Test method destroy', function () {
                 })
             });
 
-            it('', function (done) {
-                const secret = shortid.generate();
-                jwtr.sign({}, secret, function (err, token) {
-                    if (err) {
-                        return done(err);
-                    }
-                    const decode = jwtr.decode(token);
-                    return jwtr.destroy(decode.jti, function (err) {
-                        if (err) {
-                            return done(err);
-                        }
-                        return jwtr.verify(token, secret, function (err) {
-                            if (!err) {
-                                return done(new Error('should be error'));
-                            }
-                            expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
-                            done();
-                        })
-                    })
-                })
-            });
         })
     })
 });

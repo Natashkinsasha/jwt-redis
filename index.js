@@ -49,27 +49,40 @@ module.exports = function (redisClient, options) {
     };
 
     this.destroy = function (token, secretOrPublicKey, options, callback) {
-        var jti;
+        var justToken;
         if (typeof secretOrPublicKey === 'function' || !secretOrPublicKey) {
             callback = secretOrPublicKey;
             options = {};
-            jti = token;
+            justToken = token;
         } else if (typeof options === 'function') {
             callback = options;
             options = {};
         } else {
             options = options || {};
         }
-        if (jti) {
+        if (justToken){
             if (typeof callback === 'function') {
-                return destroyByJTI(jti, callback);
+                return justDestroyWhitelist(token, options, callback);
             }
-            return promisify(destroyByJTI)(jti);
+            return promisify(justDestroyWhitelist)(token,  options);
         }
         if (typeof callback === 'function') {
             return destroy(token, secretOrPublicKey, options, callback);
         }
         return promisify(destroy)(token, secretOrPublicKey, options);
+    };
+
+    this.destroyByJti = function (jti, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = {};
+        } else {
+            options = options || {};
+        }
+        if (typeof callback === 'function') {
+            return destroyByJTI(jti, callback);
+        }
+        return promisify(destroyByJTI)(jti);
     };
 
     this.destroyById = function (id, options, callback) {
@@ -179,12 +192,33 @@ module.exports = function (redisClient, options) {
             if (err) {
                 return callback(err);
             }
-            return redisClient.set(self.prefix + decoded.jti, 'true', 'EX', self.exp,  function (err, tmp) {
+            return redisClient.set(self.prefix + decoded.jti, 'true', 'EX', self.exp, function (err, tmp) {
                 if (err) {
                     return callback(err);
                 }
                 return callback(null, decoded);
             })
+        })
+    }
+
+    function justDestroyWhitelist(token, options, callback) {
+        callback = callback && once(callback);
+        return redisClient.del(self.prefix + decoded.jti, function (err) {
+            if (err) {
+                return callback(err);
+            }
+            return callback(null, decoded);
+        })
+
+    }
+
+    function justDestroyBlacklist(token, options, callback) {
+        callback = callback && once(callback);
+        return redisClient.set(self.prefix + decoded.jti, 'true', 'EX', self.exp, function (err, tmp) {
+            if (err) {
+                return callback(err);
+            }
+            return callback(null, decoded);
         })
     }
 

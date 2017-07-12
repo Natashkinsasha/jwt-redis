@@ -81,10 +81,18 @@ You can destroy the token through the token itself.
     jwtr.destroy(token, secret, options, function (err, decode) {
     })
 ```
-You can also pass jti.
+
+Also you can destroy the token without specifying a secret.
 
 ```javascript
-    jwtr.destroy(jti, options, function (err, decode) {
+    jwtr.destroy(token, options, function (err, decode) {
+    })
+```
+
+You can also destroy by jti.
+
+```javascript
+    jwtr.destroyByJti(jti, options, function (err, decode) {
     })
 ```
 
