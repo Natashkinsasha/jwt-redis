@@ -1,12 +1,12 @@
 # jwt-redis
 
-Данная библиотека полностью повторяет весь функционал библиотеки jsonwebtoken, с одним важным дополнением.
-jwt-redis позволяет сохранять метку токена в redis для проверки валидности.
-Отсутствие метки токена в redis делает токен не валидным. Для разрушения токена в jwt-redis, есть метод destroy.
-Это даёт возможность делать токен не валидным до тако, как у него истечёт срок действия.
-jwt-redis потдерживает как node_redis, так и ioredis клиенты.
+This library completely repeats the entire functionality of the library [jsonwebtoken] (https://www.npmjs.com/package/jsonwebtoken), with one important addition.
+Jwt-redis allows you to store the token label in redis to verify validity.
+The absence of a token label in redis makes the token not valid. To destroy the token in **jwt-redis**, there is a destroy method.
+This makes it possible to make a token not valid until it expires.
+Jwt-redis supports both [node_redis] (https://www.npmjs.com/package/redis) and [ioredis] (https://www.npmjs.com/package/ioredis) clients.
 
-# Быстрый старт
+# Quick start
 
 ```javascript
 var Redis = require('ioredis');
@@ -16,47 +16,42 @@ var jwtr = new JWTR(redis);
 
 var secret = 'secret';
 var payload = {};
-var options = {};
+var options = {}; //optional in all methods
 
-//  Создание токена
+// Create a token
 jwtr.sign(payload, secret, options, function (err, token) {
-    //  Если все прошло успешно в колбеке вернет сгенерированный токе err будет равен null
-    //  Если нет err будет равен ошибке
+    // If everything went well in the callback, it will return token
 
-    //  Верефикация токена
+    // Token verification
     jwtr.verify(token, secret, options, function (err, decode) {
-        //  Если все прошло успешно в колбеке вернет payload токена
-        //  Если нет err будет равен ошибке
+        // If everything went well in the callback, it will return token payload
     })
 
-    //  Разрушение токена
+    // Destroying the token
     jwtr.destroy(token, secret, options, function (err, decode) {
-        //  Если все прошло успешно в колбеке вернет payload токена
-        //  Если нет err будет равен ошибке
+        // If everything went well in the callback, it will return token payload
     })
 }
 ```
 
 # Expiration time
-
-Время жизни токена, можно задать так же как и в библиотеке jsonwebtoken.
-Метка в redis удалиться тогда же когда истечет время жизни токена.
-
+The lifetime of the token, you can set it the same way as in the [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) library.
+The label in redis is deleted when the token expires.
 ```javascript
-    // expiresIn - количество секунд через котрое токен станет не валидным
+    // expiresIn - number of seconds through which the token will not be valid
     jwtr.sign({}, 'secret', {expiresIn: expiresIn}, function (err, token) {
 
     })
-    // exp - время в которое токен станет не валидным
+    // exp - time at which the token will not be valid
     jwtr.sign({exp: exp}, secret, function (err, token) {
 
     })
 ```
 
-# Создание jti
+# Create jti
 
-Для каждого токена в claims добовляется claim jti. jti это идентификатор токена.
-Вы можете сами решить чему он будет равен, добавив его значения в payload.
+For each token, the claims are added **jti**. **Jti** is the identifier of the token.
+You can decide for yourself what it will be equal by adding its values to payload.
 
 ```javascript
 var payload = {jti: 'test'};
@@ -64,7 +59,7 @@ jwtr.sign(payload, secret, options, function (err, token) {
 })
 ```
 
-Если jti в payload нет, то jti сгенерируется на основе поля id, которое будет искаться в payload.
+If **jti** in payload is not present, then **jti** is generated based on the **id** field, which will be searched in payload.
 
 ```javascript
 var payload = {id: 'test'};
@@ -72,24 +67,24 @@ jwtr.sign(payload, secret, options, function (err, token) {
 })
 ```
 
-Если и id нет, то jti сгенерируется рандомно библиотекой.
+If **id** is not present, then **jti** is generated randomly by the library.
 
-# Разрушение токена
+# Destroy token
 
-Разрушить токен можно по средствам самого токена.
+You can destroy the token through the token itself.
 
 ```javascript
     jwtr.destroy(token, secret, options, function (err, decode) {
     })
 ```
-Так же можно передать jti.
+You can also pass jti.
 
 ```javascript
     jwtr.destroy(jti, options, function (err, decode) {
     })
 ```
 
-Ище можно сделать не валидными все токены созданные на основе одно id.
+Still it is possible to make all tokens created on the basis of one **id** not valid.
 
 ```javascript
     jwtr.destroyById(id, options, function (err, decode) {
@@ -98,7 +93,7 @@ jwtr.sign(payload, secret, options, function (err, token) {
 
 # Native Promise
 
-Все методы кроме метода decode (так как он синхронный), могут возвращать нативный Promise.
+All methods except the decode method (since it is synchronous) can return a native Promise.
 
 ```javascript
     jwtr
@@ -113,8 +108,8 @@ jwtr.sign(payload, secret, options, function (err, token) {
 
 # Bluebird
 
-Если захотите воспользоватся Bluebird, то после промисификации будут доступны все методы библиотке возвращаюшие Promise,
-только в конце каждого метода надо добавить Async.
+If you want to use **Bluebird**, then after the promiscilation all the methods of the library will be available that return Promise,
+Only at the end of each method should you add **Async**.
 
 ```javascript
     var Promise = require('bluebird');
@@ -133,4 +128,48 @@ jwtr.sign(payload, secret, options, function (err, token) {
     .catch(function (err) {
 
     })
+```
+
+# API
+
+### jwtr.sign(payload, secretOrPrivateKey, [options, callback]) ###
+
+### jwtr.verify(token, secretOrPublicKey, [options, callback]) ###
+
+### jwtr.destroy(token, secretOrPublicKey, [options, callback]) ###
+
+### jwtr.destroy(jti, [options, callback]) ###
+
+### jwtr.destroyById(id, [options, callback]) ###
+
+### jwt.decode(token [, options]) ###
+
+jwt-redis fully supports all method options that support the library[jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken).
+Therefore, it is better to read their documentation in addition. But there are several options that are available only in jwt-redis.
+jwt-redis supports two strategies for storing labels in redis: the whitelist and the blacklist. By default, the whitelist strategy is selected.
+In the initialization options, you can specify that you want to use a different strategy.
+
+```javascript
+var options = {
+    blacklist: true;
+}
+var jwtr = new JWTR(redis, options);
+```
+If you select a strategy, the black list will be set by default with a 30-day lifetime, unless another time is specified during the creation.
+The default time can be specified in the options.
+
+```javascript
+var options = {
+    blacklist: {exp: 10000};
+}
+var jwtr = new JWTR(redis, options);
+```
+
+Also in the options you can specify a prefix for the redis keys. By default it is *jwt_label:*.
+
+```javascript
+var options = {
+    prefix: 'example';
+}
+var jwtr = new JWTR(redis, options);
 ```

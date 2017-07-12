@@ -5,8 +5,12 @@ const once = require('lodash.once');
 
 module.exports = function (redisClient, options) {
 
-    this.keyspace = options && options.keyspace || 'jwt_label:';
+    this.prefix = options && options.prefix || 'jwt_label:';
     this.blacklist = (options && options.blacklist) || false;
+    this.exp = (options && options.blacklist && isNumeric(options.blacklist.exp)) || 60 * 60 * 24 * 30;
+    this.defOptions = (this.blacklist && {expiresIn: this.exp}) || {};
+
+
     const set = this.blacklist && setBlacklist || setWhitelist;
     const destroy = this.blacklist && destroyBlacklist || destroyWhitelist;
     const destroyById = this.blacklist && destroyByIdBlacklist || destroyByIdWhitelist;
@@ -23,6 +27,7 @@ module.exports = function (redisClient, options) {
         } else {
             options = options || {};
         }
+        options = !payload.exp && Object.assign(self.defOptions, options);
         if (typeof callback === 'function') {
             return sign(payload, secretOrPrivateKey, options, callback);
         }
@@ -110,7 +115,7 @@ module.exports = function (redisClient, options) {
                 if (err) {
                     return callback(err);
                 }
-                return redisClient.get(self.keyspace + decode.jti, function (err, jsonDecode) {
+                return redisClient.get(self.prefix + decode.jti, function (err, jsonDecode) {
                     if (err) {
                         return callback(err);
                     }
@@ -133,12 +138,12 @@ module.exports = function (redisClient, options) {
                 if (err) {
                     return callback(err);
                 }
-                return redisClient.get(self.keyspace + decode.jti, function (err, jsonDecode) {
+                return redisClient.get(self.prefix + decode.jti, function (err, jsonDecode) {
                     if (err) {
                         return callback(err);
                     }
                     if (redisVerifyBlacklist(jsonDecode)) {
-                        return redisClient.get(self.keyspace + decode.jti.match(/(.*):/)[0], function (err, jsonDecode) {
+                        return redisClient.get(self.prefix + decode.jti.match(/(.*):/)[0], function (err, jsonDecode) {
                             if (redisVerifyBlacklist(jsonDecode, decode.iat)) {
                                 return callback(null, decode)
                             }
@@ -159,7 +164,7 @@ module.exports = function (redisClient, options) {
             if (err) {
                 return callback(err);
             }
-            return redisClient.del(self.keyspace + decoded.jti, function (err) {
+            return redisClient.del(self.prefix + decoded.jti, function (err) {
                 if (err) {
                     return callback(err);
                 }
@@ -174,7 +179,7 @@ module.exports = function (redisClient, options) {
             if (err) {
                 return callback(err);
             }
-            return redisClient.set(self.keyspace + decoded.jti, 'true', function (err, tmp) {
+            return redisClient.set(self.prefix + decoded.jti, 'true', 'EX', self.exp,  function (err, tmp) {
                 if (err) {
                     return callback(err);
                 }
@@ -185,7 +190,7 @@ module.exports = function (redisClient, options) {
 
     function destroyByJTIWhitelist(jti, callback) {
         callback = callback && once(callback);
-        return redisClient.del(self.keyspace + jti, function (err, tmp) {
+        return redisClient.del(self.prefix + jti, function (err, tmp) {
             if (err) {
                 return callback(err);
             }
@@ -195,7 +200,7 @@ module.exports = function (redisClient, options) {
 
     function destroyByJTIBlacklist(jti, callback) {
         callback = callback && once(callback);
-        return redisClient.set(self.keyspace + jti, 'true', function (err, tmp) {
+        return redisClient.set(self.prefix + jti, 'true', 'EX', self.exp, function (err, tmp) {
             if (err) {
                 return callback(err);
             }
@@ -206,7 +211,7 @@ module.exports = function (redisClient, options) {
     function destroyByIdWhitelist(id, options, callback) {
         callback = callback && once(callback);
         return redisClient
-            .keys(self.keyspace + id + '*', function (err, keys) {
+            .keys(self.prefix + id + '*', function (err, keys) {
                 if (err) {
                     return callback(err);
                 }
@@ -225,7 +230,7 @@ module.exports = function (redisClient, options) {
     function destroyByIdBlacklist(id, options, callback) {
         callback = callback && once(callback);
         return redisClient
-            .set(self.keyspace + id + ':', Math.floor(Date.now() / 1000), function (err, keys) {
+            .set(self.prefix + id + ':', Math.floor(Date.now() / 1000), 'EX', self.exp, function (err, keys) {
                 if (err) {
                     return callback(err);
                 }
@@ -236,9 +241,9 @@ module.exports = function (redisClient, options) {
 
     function setWhitelist(jti, decode, cb) {
         if (decode.exp) {
-            return redisClient.set(self.keyspace + jti, 'true', 'EX', Math.floor(decode.exp - Date.now() / 1000), cb);
+            return redisClient.set(self.prefix + jti, 'true', 'EX', Math.floor(decode.exp - Date.now() / 1000), cb);
         }
-        return redisClient.set(self.keyspace + jti, 'true', cb);
+        return redisClient.set(self.prefix + jti, 'true', cb);
     }
 
     function setBlacklist(jti, decode, cb) {
@@ -286,6 +291,10 @@ module.exports = function (redisClient, options) {
             })
         }
         return cb()
+    }
+
+    function isNumeric(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
     }
 
     return this;
