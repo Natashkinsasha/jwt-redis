@@ -2,6 +2,9 @@ const jwt = require('jsonwebtoken');
 const shortId = require('shortid');
 const once = require('lodash.once');
 
+exports.JsonWebTokenError = jwt.JsonWebTokenError;
+exports.NotBeforeError = jwt.NotBeforeError;
+exports.TokenExpiredError = jwt.TokenExpiredError;
 
 module.exports = function (redisClient, options) {
 
@@ -135,7 +138,7 @@ module.exports = function (redisClient, options) {
                     if (redisVerifyWhitelist(jsonDecode)) {
                         return callback(null, decode)
                     }
-                    return callback(new jwt.JsonWebTokenError('jwt destroy'))
+                    return callback(new jwt.JsonWebTokenError('destroyed jwt'))
                 })
             })
         })
@@ -202,6 +205,7 @@ module.exports = function (redisClient, options) {
     }
 
     function justDestroyWhitelist(token, options, callback) {
+        var decoded = jwt.decode(token);
         callback = callback && once(callback);
         return redisClient.del(self.prefix + decoded.jti, function (err) {
             if (err) {
@@ -213,6 +217,7 @@ module.exports = function (redisClient, options) {
     }
 
     function justDestroyBlacklist(token, options, callback) {
+        var decoded = jwt.decode(token);
         callback = callback && once(callback);
         return redisClient.set(self.prefix + decoded.jti, 'true', 'EX', self.exp, function (err, tmp) {
             if (err) {
