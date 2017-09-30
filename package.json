@@ -1,6 +1,6 @@
 {
   "name": "jwt-redis",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -16,9 +16,9 @@
     "type": "git",
     "url": "git://github.com/Natashkinsasha/jwt-redis"
   },
-  "bugs":{
-    "url" : "https://github.com/Natashkinsasha/jwt-redis/issues",
-    "email" : "natashkinsasga@gmail.com"
+  "bugs": {
+    "url": "https://github.com/Natashkinsasha/jwt-redis/issues",
+    "email": "natashkinsasga@gmail.com"
   },
   "engines": {
     "node": ">=0.12",
@@ -36,6 +36,7 @@
     "fakeredis": "^2.0.0",
     "install": "^0.10.1",
     "ioredis-mock": "^2.4.0",
+    "mocha": "^3.5.3",
     "npm": "^5.1.0",
     "random-number": "0.0.7",
     "redis-mock": "^0.17.1"
