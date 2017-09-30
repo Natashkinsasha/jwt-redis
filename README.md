@@ -6,6 +6,19 @@ The absence of a token label in redis makes the token not valid. To destroy the 
 This makes it possible to make a token not valid until it expires.
 Jwt-redis supports both [node_redis] (https://www.npmjs.com/package/redis) and [ioredis] (https://www.npmjs.com/package/ioredis) clients.
 
+
+# Installation
+
+Npm
+```javascript
+npm install jwt-redis
+```
+
+Yarn
+```javascript
+yarn add jwt-redis
+```
+
 # Support
 
 This library is quite fresh, and maybe has bugs. Write me an **email** to *natashkinsash@gmail.com* and I will fix the bug in a few working days.
