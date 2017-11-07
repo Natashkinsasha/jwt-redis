@@ -26,7 +26,7 @@ describe('Test method verify', function () {
                     if (!err) {
                         done(new Error('should be error'));
                     }
-                    expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                    expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                     done();
                 })
             });
@@ -183,7 +183,7 @@ describe('Test method verify', function () {
                                     done(new Error('should be error'));
                                 }
                                 else {
-                                    expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                                    expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                                     done();
                                 }
                             })
@@ -216,7 +216,7 @@ describe('Test method verify', function () {
                 jwtr.verify(token, secret)
                     .then(done)
                     .catch(function (err) {
-                        expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                        expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                         done();
                     })
             });

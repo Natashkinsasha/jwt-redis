@@ -45,7 +45,7 @@ describe('Test method destroyById', function () {
                                 if (!err) {
                                     done(new Error('should be error'));
                                 }
-                                expect(err).to.be.an.instanceof(jwtr.TokenDestroyedError);
+                                expect(err).to.be.an.instanceof(JWTR.TokenDestroyedError);
                                 done();
                             })
                         })

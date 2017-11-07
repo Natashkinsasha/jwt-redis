@@ -26,7 +26,7 @@ describe('Test method destroy', function () {
                     if (!err) {
                         return done(new Error('should be error'));
                     }
-                    expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                    expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                     done();
                 })
             });
@@ -66,7 +66,7 @@ describe('Test method destroy', function () {
                             if (!err) {
                                 done(new Error('should be error'));
                             }
-                            expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                            expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                             done();
                         })
                     })
@@ -80,7 +80,7 @@ describe('Test method destroy', function () {
                 jwtr.destroy(token, secret)
                     .then(done)
                     .catch(function (err) {
-                        expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                        expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                         done();
                     })
             });

@@ -35,7 +35,7 @@ describe('Test method destroy', function () {
                             if (!err) {
                                 return done(new Error('should be error'));
                             }
-                            expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                            expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                             done();
                         })
                     })
@@ -57,7 +57,7 @@ describe('Test method destroy', function () {
                             if (!err) {
                                 return done(new Error('should be error'));
                             }
-                            expect(err).to.be.an.instanceof(jwtr.JsonWebTokenError);
+                            expect(err).to.be.an.instanceof(JWTR.JsonWebTokenError);
                             done();
                         })
                     })
