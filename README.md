@@ -52,7 +52,7 @@ jwtr.sign(payload, secret, options, function (err, token) {
 ```
 
 # Expiration time
-The lifetime of the token, you can set it the same way as in the [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) library.
+You can set the lifetime of the token the same way as in the [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) library.
 The label in redis is deleted when the token expires.
 ```javascript
     // expiresIn - number of seconds through which the token will not be valid
