@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/**/*.js"
+    "test": "mocha test/**/*.js --full-trace"
   },
   "author": "natashkinsasha",
   "license": "ISC",
@@ -25,19 +25,19 @@
     "npm": ">=1.4.28"
   },
   "dependencies": {
-    "jsonwebtoken": "^7.4.1",
+    "jsonwebtoken": "^8.5.1",
     "lodash.once": "^4.1.1",
     "shortid": "^2.2.8"
   },
   "devDependencies": {
     "bluebird": "^3.5.0",
-    "chai": "^4.0.2",
-    "dirty-chai": "^1.2.2",
+    "chai": "^4.2.0",
+    "dirty-chai": "^2.0.1",
     "fakeredis": "^2.0.0",
     "install": "^0.10.1",
-    "ioredis-mock": "^2.4.0",
-    "mocha": "^3.5.3",
-    "npm": "^5.1.0",
+    "ioredis": "^4.9.0",
+    "ioredis-mock": "^4.9.0",
+    "mocha": "^6.1.4",
     "random-number": "0.0.7",
     "redis-mock": "^0.17.1"
   }
