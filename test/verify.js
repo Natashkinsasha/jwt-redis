@@ -5,7 +5,7 @@ const rn = require('random-number');
 const dirtyChai = require('dirty-chai');
 const fakeRedis = require('fakeredis');
 const redisMock = require("redis-mock");
-const IORedisMock = require('ioredis-mock').default;
+const IORedisMock = require('ioredis-mock');
 const JWTR = require('../index');
 const expect = chai.expect;
 chai.use(dirtyChai);
